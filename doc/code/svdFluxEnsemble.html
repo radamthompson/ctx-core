@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of svdFluxEnsemble</title>
+  <meta name="keywords" content="svdFluxEnsemble">
+  <meta name="description" content="svdFluxEnsemble Perform SVD on flux ensemble">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">code</a> &gt; svdFluxEnsemble.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for code&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>svdFluxEnsemble
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>svdFluxEnsemble Perform SVD on flux ensemble</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ ensemble ] = svdFluxEnsemble( ensemble ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">svdFluxEnsemble Perform SVD on flux ensemble
+   This function will take a flux ensemble structure from
+   getFluxDistrEnsemble() and perform the SVD decomposition of the flux
+   ensemble.
+
+   model := Metatool model structure, requires elementary modes to be in
+   field model.ems
+   ensemble := Flux ensemble structure obtained from running
+   getFluxDistrEnsemble()
+
+   Output:
+   ensemble := Ensemble structure with SVD stats
+
+ R. Adam Thompson
+ Trinh Lab
+ University of Tennessee, Knoxville
+ rthomp46@utk.edu
+
+ Created: October 6, 2015 
+ Last edit:</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ ensemble ] = svdFluxEnsemble( ensemble )</a>
+0002 <span class="comment">%svdFluxEnsemble Perform SVD on flux ensemble</span>
+0003 <span class="comment">%   This function will take a flux ensemble structure from</span>
+0004 <span class="comment">%   getFluxDistrEnsemble() and perform the SVD decomposition of the flux</span>
+0005 <span class="comment">%   ensemble.</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%   model := Metatool model structure, requires elementary modes to be in</span>
+0008 <span class="comment">%   field model.ems</span>
+0009 <span class="comment">%   ensemble := Flux ensemble structure obtained from running</span>
+0010 <span class="comment">%   getFluxDistrEnsemble()</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">%   Output:</span>
+0013 <span class="comment">%   ensemble := Ensemble structure with SVD stats</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% R. Adam Thompson</span>
+0016 <span class="comment">% Trinh Lab</span>
+0017 <span class="comment">% University of Tennessee, Knoxville</span>
+0018 <span class="comment">% rthomp46@utk.edu</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Created: October 6, 2015</span>
+0021 <span class="comment">% Last edit:</span>
+0022 
+0023 vs = real(ensemble.flux_mat);
+0024 vssums = sqrt(sum(vs.^2));
+0025 vs = vs*diag(1./vssums);
+0026 
+0027 <span class="comment">% Perform SVD</span>
+0028 [ensemble.Uv ensemble.Sv ensemble.Vv] = svd(vs,<span class="string">'econ'</span>);
+0029 
+0030 <span class="comment">% Calculate mean to compare to first principal component vector from U</span>
+0031 ensemble.vmean = mean(vs,2);
+0032 <span class="comment">% Calculate standard deviation for each of the fluxes</span>
+0033 ensemble.vstd = std(vs,0,2);
+0034 
+0035 <span class="comment">% Construct scree plot</span>
+0036 Sdiag = diag(ensemble.Sv);
+0037 S2 = Sdiag.^2;
+0038 S2 = S2/sum(S2);
+0039 S2 = cumsum(S2);
+0040 figure
+0041 plot(S2)
+0042 xlabel(<span class="string">'Number of principal components'</span>)
+0043 ylabel(<span class="string">'Fraction of cumulative sum of squared singular values'</span>)
+0044 grid on
+0045 xlim([0 10])
+0046 
+0047 ensemble.S2 = S2;
+0048</pre></div>
+<hr><address>Generated on Tue 19-Jul-2016 12:48:48 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

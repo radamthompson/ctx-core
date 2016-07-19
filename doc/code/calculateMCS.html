@@ -1,0 +1,186 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of calculateMCS</title>
+  <meta name="keywords" content="calculateMCS">
+  <meta name="description" content="calculateMCS Calculate MCS for network">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">code</a> &gt; calculateMCS.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for code&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>calculateMCS
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>calculateMCS Calculate MCS for network</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function CNA_out = calculateMCS(model,minY,minRxn) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">calculateMCS Calculate MCS for network
+ This function takes in a metabolic network and a minimum yield request
+ then calculates the minimal cut set for the given inputs.  This version
+ is designed to work with C. therm. networks with ethanol as the product
+ of interest
+
+   model := Either a structure from output of performMMF or a string with
+   the name of the input metatool text file
+   minY := Specified starting minimum yield of desired product (ethanol),
+   optional, default 0.8
+   minRxn := Specified minimum number of reactions in the MCS, optional,
+   default 5
+
+   cutsets := output from 
+
+ R. Adam Thompson
+ Trinh Lab
+ University of Tennessee, Knoxville
+ rthomp46@utk.edu
+
+ Original algorithm written 9/2012
+ Last edit: March 9, 2015</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="performMMF.html" class="code" title="function [ output ] = performMMF( model,obj,delrxn,fig_title )">performMMF</a>	performMMF Perform single iteration of MMF algorithm</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function CNA_out = calculateMCS(model,minY,minRxn)</a>
+0002 <span class="comment">%calculateMCS Calculate MCS for network</span>
+0003 <span class="comment">% This function takes in a metabolic network and a minimum yield request</span>
+0004 <span class="comment">% then calculates the minimal cut set for the given inputs.  This version</span>
+0005 <span class="comment">% is designed to work with C. therm. networks with ethanol as the product</span>
+0006 <span class="comment">% of interest</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">%   model := Either a structure from output of performMMF or a string with</span>
+0009 <span class="comment">%   the name of the input metatool text file</span>
+0010 <span class="comment">%   minY := Specified starting minimum yield of desired product (ethanol),</span>
+0011 <span class="comment">%   optional, default 0.8</span>
+0012 <span class="comment">%   minRxn := Specified minimum number of reactions in the MCS, optional,</span>
+0013 <span class="comment">%   default 5</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">%   cutsets := output from</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% R. Adam Thompson</span>
+0018 <span class="comment">% Trinh Lab</span>
+0019 <span class="comment">% University of Tennessee, Knoxville</span>
+0020 <span class="comment">% rthomp46@utk.edu</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% Original algorithm written 9/2012</span>
+0023 <span class="comment">% Last edit: March 9, 2015</span>
+0024 
+0025 <span class="comment">% Check model input type and initialize. If string, calc EMs</span>
+0026 <span class="keyword">if</span> isa(model,<span class="string">'char'</span>)
+0027     [cnap,errval] = CNAmetatool2MFNetwork(model);
+0028     <span class="keyword">if</span> errval == 0
+0029         CNA_net = CNAsaveNetwork(cnap);
+0030     <span class="keyword">else</span>
+0031         fprintf(<span class="string">'****\nError in CNA model import\n*****\n'</span>)
+0032     <span class="keyword">end</span>
+0033     [ems,rev,idx,ray] = CNAcomputeEFM(CNA_net,[],3,1,0,0,[],<span class="string">'All'</span>,{});
+0034     CNA_net.ems = ems';
+0035     CNA_net.react_name = strtrim(num2cell(CNA_net.reacID,2));
+0036     CNA_net.species = 1;
+0037     model = <a href="performMMF.html" class="code" title="function [ output ] = performMMF( model,obj,delrxn,fig_title )">performMMF</a>(CNA_net,{<span class="string">'CEL1'</span>},[]);
+0038 <span class="keyword">end</span>
+0039 
+0040 <span class="comment">% Simplify things</span>
+0041 <span class="keyword">if</span> nargin &lt; 2
+0042     minY = 0.8;
+0043 <span class="keyword">end</span>
+0044 <span class="keyword">if</span> nargin &lt; 3
+0045     minRxn = 5;
+0046 <span class="keyword">end</span>
+0047 
+0048 maxY = max(model.YieldEtOH);
+0049 yield = model.YieldEtOH;
+0050 allMax = yield == maxY;
+0051 
+0052 react_name = model.react_name;
+0053 iCB = strcmp(react_name,<span class="string">'CEL1'</span>);
+0054 iETOH = strcmp(react_name,<span class="string">'TRA1'</span>);
+0055 iTAM = strcmp(react_name,<span class="string">'TAM1r'</span>);
+0056 iVAL1 = strcmp(react_name,<span class="string">'VAL1'</span>);
+0057 iVAL2 = strcmp(react_name,<span class="string">'VAL2r'</span>);
+0058 iVAL3 = strcmp(react_name,<span class="string">'VAL3r'</span>);
+0059 iVAL4 = strcmp(react_name,<span class="string">'VAL4r'</span>);
+0060 iVAL5 = strcmp(react_name,<span class="string">'VAL5'</span>);
+0061 
+0062 <span class="comment">% Set up MCS calculations</span>
+0063 keep1 = yield &gt;= (minY*maxY); 
+0064 keep2 = model.YieldBIO &gt; 0;
+0065 keep3 = false(length(keep1),1);
+0066 <span class="keyword">for</span> i = 1:length(keep1)
+0067     <span class="keyword">if</span> keep1(i) &amp;&amp; keep2(i)
+0068         keep3(i) = true;
+0069     <span class="keyword">end</span>
+0070 <span class="keyword">end</span>
+0071 keep = allMax' + keep3;
+0072 keep = logical(keep);
+0073 toss = yield == 0;
+0074 
+0075 goods = model.ems(:,keep)';
+0076 trash = model.ems(:,toss)';
+0077 
+0078 sets2save.tabl2save = goods;
+0079 sets2save.min2save = 1;
+0080 
+0081 <span class="comment">%%%% Use below for when there are no ElMos needed to be kept</span>
+0082 <span class="comment">%CNA_out.cutsets = CNAcomputeCutsets(trash,'Inf',react_name,[],1);</span>
+0083 
+0084 <span class="comment">%%%% Use below for when a set of ElMos should be kept</span>
+0085 CNA_out.cutsets = CNAcomputeCutsets(trash,<span class="string">'Inf'</span>,react_name,sets2save,1);
+0086 
+0087 <span class="comment">% Prune MCSs</span>
+0088 [m n] = size(CNA_out.cutsets);
+0089 cs = CNA_out.cutsets;
+0090 arr = [1:1:m]';
+0091 idx = [];
+0092 <span class="keyword">for</span> i = 1:m
+0093     <span class="keyword">if</span> cs(i,iCB)
+0094         idx = [idx; i];
+0095     <span class="keyword">elseif</span> cs(i,iETOH)
+0096         idx = [idx; i];
+0097     <span class="keyword">elseif</span> cs(i,iTAM)
+0098         idx = [idx; i];
+0099     <span class="keyword">elseif</span> cs(i,iVAL1)
+0100         idx = [idx; i]; 
+0101     <span class="keyword">elseif</span> cs(i,iVAL2)
+0102         idx = [idx; i];
+0103     <span class="keyword">elseif</span> cs(i,iVAL3)
+0104         idx = [idx; i];
+0105     <span class="keyword">elseif</span> cs(i,iVAL4)
+0106         idx = [idx; i];
+0107     <span class="keyword">elseif</span> cs(i,iVAL5)
+0108         idx = [idx; i];
+0109     <span class="keyword">end</span>
+0110 <span class="keyword">end</span>
+0111 idx = unique(idx);
+0112 prune = setdiff(arr,idx);
+0113 
+0114 CNA_out.pruned = cs(prune,:);
+0115 
+0116 <span class="comment">% a = sum(CNA_test.pruned,1);</span>
+0117 <span class="comment">% a = num2str(a');</span>
+0118 <span class="comment">% [char(react_name), a]</span></pre></div>
+<hr><address>Generated on Tue 19-Jul-2016 12:48:48 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of printEMspace</title>
+  <meta name="keywords" content="printEMspace">
+  <meta name="description" content="plotEMspace">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">code</a> &gt; printEMspace.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for code&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>printEMspace
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>plotEMspace</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ output ] = printEMspace( ems, react_name, fig_title ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">plotEMspace 
+   This function will take a set of EMs, calculate the yield of product
+   per substrate, then plot Yield_{P/S} vs Yield_{Bio/S} and export to pdf
+
+   Set up for C therm. core network (cellobiose)
+
+   Inputs:
+       ems - A set of ems for the network in question
+       react_name - A cell array with the reaction names in the network
+       fig_title - A string which will be the name of the pdf produced
+
+
+ R. Adam Thompson
+ Trinh Lab
+ University of Tennessee, Knoxville
+ rthomp46@utk.edu</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ output ] = printEMspace( ems, react_name, fig_title )</a>
+0002 <span class="comment">%plotEMspace</span>
+0003 <span class="comment">%   This function will take a set of EMs, calculate the yield of product</span>
+0004 <span class="comment">%   per substrate, then plot Yield_{P/S} vs Yield_{Bio/S} and export to pdf</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">%   Set up for C therm. core network (cellobiose)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">%   Inputs:</span>
+0009 <span class="comment">%       ems - A set of ems for the network in question</span>
+0010 <span class="comment">%       react_name - A cell array with the reaction names in the network</span>
+0011 <span class="comment">%       fig_title - A string which will be the name of the pdf produced</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% R. Adam Thompson</span>
+0015 <span class="comment">% Trinh Lab</span>
+0016 <span class="comment">% University of Tennessee, Knoxville</span>
+0017 <span class="comment">% rthomp46@utk.edu</span>
+0018 
+0019 cCB = 12;    
+0020 cETOH = 2;
+0021 cBIO = 4;
+0022 
+0023 iCEL = find(strcmp(react_name,<span class="string">'CEL1'</span>));
+0024 iBIO = find(strcmp(react_name,<span class="string">'BIO'</span>));
+0025 iETOH = find(strcmp(react_name,<span class="string">'TRA1'</span>));
+0026 
+0027 output.YieldEtOH = ems(iETOH,:)*cETOH./(ems(iCEL,:)*cCB);
+0028 output.YieldBIO = (ems(iBIO,:)*cBIO)./(ems(iCEL,:)*cCB);
+0029 
+0030 output.YieldEtOH(isnan(output.YieldEtOH))=0;
+0031 output.YieldBIO(isnan(output.YieldBIO))=0;
+0032 
+0033 
+0034 figure
+0035 plot(output.YieldBIO,output.YieldEtOH,<span class="string">'b*'</span>);
+0036 xlabel(<span class="string">'Y_{BIO/CB} (C mol / C mol)'</span>);
+0037 ylabel(<span class="string">'Y_{EtOH/CB} (C mol / C mol)'</span>);
+0038 xlim([0 1]);
+0039 ylim([0 1]);
+0040 
+0041 set(gca,<span class="string">'XTick'</span>,[0:0.1:1.0],<span class="string">'YTick'</span>,[0:0.1:1.0])
+0042 set(gca,<span class="string">'FontSize'</span>,14)
+0043 set(findall(gcf,<span class="string">'type'</span>,<span class="string">'text'</span>),<span class="string">'fontSize'</span>,16)
+0044 fp = fillPage(gcf, <span class="string">'margins'</span>, [0 0 0 0], <span class="string">'papersize'</span>, [8.5 8.5]);
+0045 print (gcf,<span class="string">'-dpdf'</span>,<span class="string">'-r300'</span>,fig_title);
+0046 
+0047 <span class="keyword">end</span>
+0048</pre></div>
+<hr><address>Generated on Tue 19-Jul-2016 12:48:48 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,490 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of performMMF</title>
+  <meta name="keywords" content="performMMF">
+  <meta name="description" content="performMMF Perform single iteration of MMF algorithm">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">code</a> &gt; performMMF.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for code&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>performMMF
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>performMMF Perform single iteration of MMF algorithm</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ output ] = performMMF( model,obj,delrxn,fig_title ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> performMMF Perform single iteration of MMF algorithm
+   This function performs a rigidity analysis on a metatool model as a
+   single iteration of the Minimal Metabolic Functionality process (Trinh
+   et al., AEM, 2008).
+
+   model := Metatool metabolic model structure with species identifier
+   obj := Substrate preference; a string 'RXN_NAME'
+   delrxn := Cell array of reactions to delete on this iteration
+   fig_title := (Optional) If you want to print the figure to PDF, give it
+   a title
+
+   output := structure of rigidity stats
+
+ R. Adam Thompson
+ Trinh Lab
+ University of Tennessee, Knoxville
+ rthomp46@utk.edu
+
+ Created: February 12, 2012 (First editions authored by Cong T. Trinh)
+ Last edit: February 11, 2015</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="calculateMCS.html" class="code" title="function CNA_out = calculateMCS(model,minY,minRxn)">calculateMCS</a>	calculateMCS Calculate MCS for network</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ output ] = performMMF( model,obj,delrxn,fig_title )</a>
+0002 <span class="comment">% performMMF Perform single iteration of MMF algorithm</span>
+0003 <span class="comment">%   This function performs a rigidity analysis on a metatool model as a</span>
+0004 <span class="comment">%   single iteration of the Minimal Metabolic Functionality process (Trinh</span>
+0005 <span class="comment">%   et al., AEM, 2008).</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%   model := Metatool metabolic model structure with species identifier</span>
+0008 <span class="comment">%   obj := Substrate preference; a string 'RXN_NAME'</span>
+0009 <span class="comment">%   delrxn := Cell array of reactions to delete on this iteration</span>
+0010 <span class="comment">%   fig_title := (Optional) If you want to print the figure to PDF, give it</span>
+0011 <span class="comment">%   a title</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">%   output := structure of rigidity stats</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% R. Adam Thompson</span>
+0016 <span class="comment">% Trinh Lab</span>
+0017 <span class="comment">% University of Tennessee, Knoxville</span>
+0018 <span class="comment">% rthomp46@utk.edu</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Created: February 12, 2012 (First editions authored by Cong T. Trinh)</span>
+0021 <span class="comment">% Last edit: February 11, 2015</span>
+0022 
+0023 
+0024 <span class="comment">% Check for figure printing</span>
+0025 <span class="keyword">if</span> nargin &gt; 3
+0026     print_fig = 1;
+0027 <span class="keyword">else</span>
+0028     print_fig = 0;
+0029 <span class="keyword">end</span>
+0030 
+0031 <span class="comment">% Make life a bit easier</span>
+0032 ems = model.ems;
+0033 react_name = model.react_name;
+0034 species = model.species;
+0035 output = model;
+0036 
+0037 <span class="comment">% Only use modes with substrate of interest</span>
+0038 <span class="keyword">if</span> ~isempty(obj)
+0039     <span class="keyword">for</span> i = 1:length(obj)
+0040         i_obj = find(strcmp(react_name,obj(i)));
+0041         ems   = ems(:,find(ems(i_obj,:)~=0));
+0042         <span class="keyword">if</span> ~length(i_obj)
+0043             fprintf(<span class="string">'Error: Reaction %s is not in react_name\n'</span>,cell2mat(obj(i)))
+0044             <span class="keyword">return</span>
+0045         <span class="keyword">end</span>
+0046     <span class="keyword">end</span>
+0047 <span class="keyword">end</span>
+0048 
+0049 <span class="comment">% Enforce deletion strategy</span>
+0050 <span class="keyword">if</span> ~isempty(delrxn)
+0051     <span class="keyword">for</span> i = 1:length(delrxn)
+0052         i_delrxn = find(strcmp(react_name,delrxn(i)));
+0053         ems   = ems(:,find(ems(i_delrxn,:)==0));
+0054         <span class="keyword">if</span> ~length(i_delrxn)
+0055             fprintf(<span class="string">'Error: Reaction %s is not in react_name\n'</span>,cell2mat(delrxn(i)))
+0056             <span class="keyword">return</span>
+0057         <span class="keyword">end</span>
+0058     <span class="keyword">end</span>
+0059 <span class="keyword">end</span>
+0060 
+0061 [m n] = size(ems);
+0062 
+0063 <span class="keyword">if</span> n == 0
+0064     fprintf(<span class="string">'There are no elementary modes with the given obj and delrxn\n'</span>)
+0065     output.check = 0;
+0066     <span class="keyword">return</span>
+0067 <span class="keyword">else</span>
+0068     output.check = 1;
+0069 <span class="keyword">end</span>
+0070 
+0071 fprintf(<span class="string">'Number of EMs: %6.0f\n'</span>,n)
+0072 output.ems = ems;
+0073 
+0074 <span class="comment">% Carbon balance</span>
+0075 cCB = 12; cGLU = 6; cETOH = 2; cACE = 2; cLAC = 3;
+0076 cFOR = 1; cSUCC = 4; cVAL = 5; cCO2 = 1; cALA = 3;
+0077 
+0078 <span class="comment">% Get EM stats for this deletion set</span>
+0079 <span class="keyword">switch</span> species
+0080     <span class="comment">%%</span>
+0081     <span class="keyword">case</span> 1
+0082         <span class="comment">% C. therm.</span>
+0083         iSUB = find(strcmp(react_name,<span class="string">'CEL1'</span>));
+0084         iETOH = find(strcmp(react_name,<span class="string">'TRA1'</span>));
+0085         iACE = find(strcmp(react_name,<span class="string">'TRA2'</span>));
+0086         iLAC = find(strcmp(react_name,<span class="string">'TRA4'</span>));
+0087         iFOR = find(strcmp(react_name,<span class="string">'TRA6'</span>));
+0088         iBIO = find(strcmp(react_name,<span class="string">'BIO'</span>));
+0089         iCO2 = find(strcmp(react_name,<span class="string">'TRA7'</span>));
+0090         iH2 = find(strcmp(react_name,<span class="string">'TRA8'</span>));
+0091         iVAL = find(strcmp(react_name,<span class="string">'VAL5'</span>));
+0092         
+0093         output.ETOH_EMS = [];
+0094         output.ACE_EMS = [];
+0095         output.LAC_EMS = [];
+0096         output.VAL_EMS = [];
+0097         output.FOR_EMS = [];
+0098         output.H2_EMS = [];
+0099         output.BIO_EMS = [];
+0100         output.EthBIO = [];
+0101         
+0102         cBIO = 37;
+0103         
+0104         <span class="comment">% New yields</span>
+0105         output.YieldEtOH = ems(iETOH,:)*cETOH./(ems(iSUB,:)*cCB);
+0106         output.YieldBIO = (ems(iBIO,:)*cBIO)./(ems(iSUB,:)*cCB);
+0107         
+0108         <span class="keyword">for</span> i = 1:n
+0109             <span class="keyword">if</span> (ems(iETOH,i) ~= 0)
+0110                 output.ETOH_EMS(end+1) = i;
+0111                 <span class="keyword">if</span> (ems(iBIO,i) ~= 0)
+0112                     output.EthBIO(end+1) = i;
+0113                 <span class="keyword">end</span>
+0114             <span class="keyword">end</span>
+0115             <span class="keyword">if</span> (ems(iACE,i) ~= 0)
+0116                 output.ACE_EMS(end+1) = i;
+0117             <span class="keyword">end</span>
+0118             <span class="keyword">if</span> (ems(iLAC,i) ~= 0)
+0119                 output.LAC_EMS(end+1) = i;
+0120             <span class="keyword">end</span>
+0121             <span class="keyword">if</span> (ems(iVAL,i) ~= 0)
+0122                 output.VAL_EMS(end+1) = i;
+0123             <span class="keyword">end</span>
+0124             <span class="keyword">if</span> (ems(iFOR,i) ~= 0)
+0125                 output.FOR_EMS(end+1) = i;
+0126             <span class="keyword">end</span>
+0127             <span class="keyword">if</span> (ems(iH2,i) ~= 0)
+0128                 output.H2_EMS(end+1) = i;
+0129             <span class="keyword">end</span>
+0130             <span class="keyword">if</span> (ems(iBIO,i) ~= 0)
+0131                 output.BIO_EMS(end+1) = i;
+0132             <span class="keyword">end</span>
+0133             
+0134         <span class="keyword">end</span>
+0135         
+0136         <span class="comment">% Initialize rigidity analysis</span>
+0137         output.range_ETOH = [];
+0138         output.range_BIO = [];
+0139         output.range_BOTH = [];
+0140         output.modefrac = [];
+0141         
+0142         <span class="comment">% Perform rigidity analysis</span>
+0143         <span class="keyword">for</span> i = 1:length(react_name)
+0144             ems_temp = ems;
+0145             ems_temp = ems_temp(:, find(ems(i,:)==0));
+0146             n_ems_temp = size(ems_temp,2);
+0147             <span class="keyword">if</span> ~isempty(find(ems_temp(iSUB,:)))&amp;&amp;~isempty(ems_temp)
+0148                 ndx = find(ems_temp(iSUB,:));
+0149                 YETOH = (ems_temp(iETOH,ndx)*cETOH)./(ems_temp(iSUB,ndx)*cCB);
+0150                 YBIO = (ems_temp(iBIO,ndx)*cBIO)./(ems_temp(iSUB,ndx)*cCB);
+0151                 YACE = (ems_temp(iACE,ndx)*cACE)./(ems_temp(iSUB,ndx)*cCB);
+0152                 output.range_ETOH(i,:) = [min(YETOH) max(YETOH)];
+0153                 output.range_BIO(i,:) = [min(YBIO) max(YBIO)];
+0154                 output.range_ACE(i,:) = [min(YACE) max(YACE)];
+0155                 [blah,eth] = find(YETOH);
+0156                 [blah,bio] = find(YBIO);
+0157                 BOTH = intersect(eth,bio);
+0158                 <span class="keyword">if</span> ~isempty(BOTH)
+0159                     output.range_BOTH(i,:) = [min(YETOH(BOTH)) max(YETOH(BOTH))];
+0160                 <span class="keyword">else</span>
+0161                     output.range_BOTH(i,:) = [0 0];
+0162                 <span class="keyword">end</span>
+0163             <span class="keyword">else</span>
+0164                 output.range_ETOH(i,:) = [0 0];
+0165                 output.range_BIO(i,:) = [0 0];
+0166                 output.range_BOTH(i,:) = [0 0];
+0167             <span class="keyword">end</span>
+0168             output.modefrac(i,1) = n_ems_temp/n;
+0169         <span class="keyword">end</span>
+0170         
+0171         <span class="comment">% Sort new list by mode frac</span>
+0172         [mfrac ndx] = sort(output.modefrac,<span class="string">'ascend'</span>);
+0173         ETOH = output.range_ETOH(ndx,:);
+0174         BIO = output.range_BIO(ndx,:);
+0175         rxn_name = react_name(ndx);
+0176         iii = 1:1:length(react_name);
+0177         max_sync = [];
+0178         min_sync = [];
+0179         bio_sync = [];
+0180         
+0181         <span class="keyword">for</span> p = 1:length(mfrac)
+0182             max_sync(p) = output.range_ETOH(ndx(p),2);
+0183             min_sync(p) = output.range_ETOH(ndx(p),1);
+0184             bio_sync(p) = output.range_BIO(ndx(p),2);
+0185         <span class="keyword">end</span>
+0186         
+0187         count = size(react_name);
+0188         
+0189         YieldBIO = output.YieldBIO;
+0190         YieldEtOH = output.YieldEtOH;
+0191         <span class="comment">%%</span>
+0192         
+0193     <span class="keyword">case</span> 2
+0194         <span class="comment">% E. coli</span>
+0195         iSUB = find(strcmp(react_name,<span class="string">'GG1'</span>));
+0196         iETOH = find(strcmp(react_name,<span class="string">'TRA1'</span>));
+0197         iACE = find(strcmp(react_name,<span class="string">'TRA2'</span>));
+0198         iLAC = find(strcmp(react_name,<span class="string">'TRA4'</span>));
+0199         iFOR = find(strcmp(react_name,<span class="string">'TRA6'</span>));
+0200         iBIO = find(strcmp(react_name,<span class="string">'BIO'</span>));
+0201         iCO2 = find(strcmp(react_name,<span class="string">'TRA7'</span>));
+0202         iSUC = find(strcmp(react_name,<span class="string">'TRA5'</span>));
+0203         iO2 = find(strcmp(react_name,<span class="string">'OPM1'</span>));
+0204         iO2_2 = find(strcmp(react_name,<span class="string">'OPM2'</span>));
+0205         
+0206         output.ETOH_EMS = [];
+0207         output.ACE_EMS = [];
+0208         output.LAC_EMS = [];
+0209         output.SUC_EMS = [];
+0210         output.FOR_EMS = [];
+0211         output.ANAERO_EMS = [];
+0212         output.BIO_EMS = [];
+0213         output.EthBIO = [];
+0214         
+0215         cBIO = 45367;
+0216         
+0217         output.YieldEtOH = ems(iETOH,:)*cETOH./(ems(iSUB,:)*cGLU);
+0218         output.YieldBIO = (ems(iBIO,:)*cBIO)./(ems(iSUB,:)*cGLU);
+0219         
+0220         <span class="keyword">for</span> i = 1:n
+0221             <span class="keyword">if</span> (ems(iETOH,i) ~= 0)
+0222                 output.ETOH_EMS(end+1) = i;
+0223                 <span class="keyword">if</span> (ems(iBIO,i) ~= 0)
+0224                     output.EthBIO(end+1) = i;
+0225                 <span class="keyword">end</span>
+0226             <span class="keyword">end</span>
+0227             <span class="keyword">if</span> (ems(iACE,i) ~= 0)
+0228                 output.ACE_EMS(end+1) = i;
+0229             <span class="keyword">end</span>
+0230             <span class="keyword">if</span> (ems(iLAC,i) ~= 0)
+0231                 output.LAC_EMS(end+1) = i;
+0232             <span class="keyword">end</span>
+0233             <span class="keyword">if</span> (ems(iSUC,i) ~= 0)
+0234                 output.SUC_EMS(end+1) = i;
+0235             <span class="keyword">end</span>
+0236             <span class="keyword">if</span> (ems(iFOR,i) ~= 0)
+0237                 output.FOR_EMS(end+1) = i;
+0238             <span class="keyword">end</span>
+0239             <span class="keyword">if</span> (ems(iBIO,i) ~= 0)
+0240                 output.BIO_EMS(end+1) = i;
+0241             <span class="keyword">end</span>
+0242             <span class="keyword">if</span> (ems(iO2,i) == 0 &amp;&amp; ems(iO2_2,i) == 0)
+0243                 output.ANAERO_EMS(end+1) = i;
+0244             <span class="keyword">end</span>
+0245             
+0246         <span class="keyword">end</span>
+0247         
+0248         <span class="comment">% Initialize rigidity analysis</span>
+0249         output.range_ETOH = [];
+0250         output.range_BIO = [];
+0251         output.range_BOTH = [];
+0252         output.modefrac = [];
+0253         
+0254         <span class="comment">% Perform rigidity analysis</span>
+0255         <span class="keyword">for</span> i = 1:length(react_name)
+0256             ems_temp = ems;
+0257             ems_temp = ems_temp(:, find(ems(i,:)==0));
+0258             n_ems_temp = size(ems_temp,2);
+0259             <span class="keyword">if</span> ~isempty(find(ems_temp(iSUB,:)))&amp;&amp;~isempty(ems_temp)
+0260                 ndx = find(ems_temp(iSUB,:));
+0261                 YETOH = (ems_temp(iETOH,ndx)*cETOH)./(ems_temp(iSUB,ndx)*cGLU);
+0262                 YBIO = (ems_temp(iBIO,ndx)*cBIO)./(ems_temp(iSUB,ndx)*cGLU);
+0263                 output.range_ETOH(i,:) = [min(YETOH) max(YETOH)];
+0264                 output.range_BIO(i,:) = [min(YBIO) max(YBIO)];
+0265                 [blah,eth] = find(YETOH);
+0266                 [blah,bio] = find(YBIO);
+0267                 BOTH = intersect(eth,bio);
+0268                 <span class="keyword">if</span> ~isempty(BOTH)
+0269                     output.range_BOTH(i,:) = [min(BOTH) max(BOTH)];
+0270                 <span class="keyword">else</span>
+0271                     output.range_BOTH(i,:) = [0 0];
+0272                 <span class="keyword">end</span>
+0273                 <span class="comment">% fprintf('%i\n',i);</span>
+0274             <span class="keyword">else</span>
+0275                 output.range_ETOH(i,:) = [0 0];
+0276                 output.range_BIO(i,:) = [0 0];
+0277                 output.range_BOTH(i,:) = [0 0];
+0278             <span class="keyword">end</span>
+0279             output.modefrac(i,1) = n_ems_temp/n;
+0280         <span class="keyword">end</span>
+0281         
+0282         <span class="comment">% Sort new list by mode frac</span>
+0283         [mfrac ndx] = sort(output.modefrac,<span class="string">'ascend'</span>);
+0284         ETOH = output.range_ETOH(ndx,:);
+0285         BIO = output.range_BIO(ndx,:);
+0286         rxn_name = react_name(ndx);
+0287         iii = 1:1:length(react_name);
+0288         max_sync = [];
+0289         min_sync = [];
+0290         bio_sync = [];
+0291         
+0292         <span class="keyword">for</span> p = 1:length(mfrac)
+0293             max_sync(p) = output.range_ETOH(ndx(p),2);
+0294             min_sync(p) = output.range_ETOH(ndx(p),1);
+0295             bio_sync(p) = output.range_BIO(ndx(p),2);
+0296         <span class="keyword">end</span>
+0297         
+0298         count = size(react_name);
+0299         
+0300         YieldBIO = output.YieldBIO;
+0301         YieldEtOH = output.YieldEtOH;
+0302         <span class="comment">%%</span>
+0303     <span class="keyword">case</span> 3
+0304         <span class="comment">% Toy Network</span>
+0305         iSUB = find(strcmp(react_name,<span class="string">'R1'</span>));
+0306         iP = find(strcmp(react_name,<span class="string">'R4'</span>));
+0307         iD = find(strcmp(react_name,<span class="string">'R9'</span>));
+0308         
+0309         output.YieldP = ems(iP,:)./ems(iSUB,:);
+0310         output.YieldD = ems(iD,:)./ems(iSUB,:);
+0311         
+0312         output.P_EMS = find(output.YieldP);
+0313         output.D_EMS = find(output.YieldD);
+0314         
+0315         <span class="comment">% Initialize rigidity analysis</span>
+0316         output.range_P = [];
+0317         output.range_D = [];
+0318         output.modefrac = [];
+0319         
+0320         <span class="comment">% Perform rigidity analysis</span>
+0321         <span class="keyword">for</span> i = 1:length(react_name)
+0322             ems_temp = ems;
+0323             ems_temp = ems_temp(:, find(ems(i,:)==0));
+0324             n_ems_temp = size(ems_temp,2);
+0325             <span class="keyword">if</span> ~isempty(find(ems_temp(iSUB,:)))&amp;&amp;~isempty(ems_temp)
+0326                 ndx = find(ems_temp(iSUB,:));
+0327                 Y_P = ems_temp(iP,ndx)./ems_temp(iSUB,ndx);
+0328                 Y_D = ems_temp(iD,ndx)./ems_temp(iSUB,ndx);
+0329                 output.range_P(i,:) = [min(Y_P) max(Y_P)];
+0330                 output.range_D(i,:) = [min(Y_D) max(Y_D)];
+0331             <span class="keyword">else</span>
+0332                 output.range_P(i,:) = [0 0];
+0333                 output.range_D(i,:) = [0 0];
+0334             <span class="keyword">end</span>
+0335             output.modefrac(i,1) = n_ems_temp/n;
+0336         <span class="keyword">end</span>
+0337         
+0338         <span class="comment">% Sort new list by mode frac</span>
+0339         [mfrac ndx] = sort(output.modefrac,<span class="string">'ascend'</span>);
+0340         P = output.range_P(ndx,:);
+0341         D = output.range_D(ndx,:);
+0342         rxn_name = react_name(ndx);
+0343         iii = 1:1:length(react_name);
+0344         max_sync = [];
+0345         min_sync = [];
+0346         bio_sync = [];
+0347         
+0348         <span class="keyword">for</span> p = 1:length(mfrac)
+0349             max_sync(p) = output.range_P(ndx(p),2);
+0350             min_sync(p) = output.range_P(ndx(p),1);
+0351             bio_sync(p) = output.range_D(ndx(p),2);
+0352         <span class="keyword">end</span>
+0353         
+0354         count = size(react_name);
+0355         
+0356         YieldBIO = output.YieldD;
+0357         YieldEtOH = output.YieldP;
+0358         
+0359         <span class="comment">%%</span>
+0360 <span class="keyword">end</span>
+0361 
+0362 
+0363 <span class="comment">%%</span>
+0364 <span class="comment">% Figure set up</span>
+0365 fp = fillPage(gcf, <span class="string">'margins'</span>, [0 0 0 0], <span class="string">'papersize'</span>, [11 8.5]);
+0366 <span class="keyword">if</span> print_fig == 1
+0367     title(fig_title);
+0368 <span class="keyword">else</span>
+0369     title(<span class="string">'MMF Results'</span>);
+0370 <span class="keyword">end</span>
+0371 
+0372 <span class="comment">% Mode Fraction and Max Ethanol Yield per Reaction Deletion</span>
+0373 subplot(2,1,1);
+0374 plot(iii, mfrac,<span class="string">'kx'</span>, iii, max_sync,<span class="string">'bo'</span>,iii,bio_sync,<span class="string">'g^'</span>,iii,min_sync,<span class="string">'r+'</span>);
+0375 xlabel(<span class="string">'Reaction'</span>);<span class="keyword">switch</span> species
+0376     <span class="keyword">case</span> 1
+0377         xlim([1 60]); <span class="comment">% C. therm.</span>
+0378         ylim([0 1]);
+0379         ylabel(<span class="string">'Y EtOH / Y BIO / Mode Fraction'</span>);
+0380         
+0381     <span class="keyword">case</span> 2
+0382         xlim([1 61]); <span class="comment">% E. coli</span>
+0383         ylim([0 1]);
+0384         ylabel(<span class="string">'Y EtOH / Y BIO / Mode Fraction'</span>);
+0385         
+0386     <span class="keyword">case</span> 3
+0387         xlim([1 11]); <span class="comment">% Toy Net</span>
+0388         ylim([0 2]);
+0389         ylabel(<span class="string">'Y_P / Y_D / Mode Fraction'</span>);
+0390         
+0391 <span class="keyword">end</span>
+0392 set(gca,<span class="string">'xtick'</span>,1:count);
+0393 set(gca,<span class="string">'xticklabel'</span>,rxn_name);
+0394 xticklabel_rotate([],90,[],<span class="string">'Fontsize'</span>,8);
+0395 
+0396 <span class="comment">% Biomass vs Ethanol Production</span>
+0397 subplot(2,1,2);
+0398 plot(YieldBIO,YieldEtOH,<span class="string">'bx'</span>);
+0399 <span class="keyword">switch</span> species
+0400     <span class="keyword">case</span> 1
+0401         xlim([0 1]);
+0402         ylim([0 1]);
+0403         xlabel(<span class="string">'Y_{BIO/CB} (C mol / C mol)'</span>);
+0404         ylabel(<span class="string">'Y_{EtOH/CB} (C mol / C mol)'</span>);
+0405     <span class="keyword">case</span> 2
+0406         xlim([0 1]);
+0407         ylim([0 1]);
+0408         xlabel(<span class="string">'Y_{BIO/GLU} (C mol / C mol)'</span>);
+0409         ylabel(<span class="string">'Y_{EtOH/GLU} (C mol / C mol)'</span>);
+0410     <span class="keyword">case</span> 3
+0411         xlim([0 2]);
+0412         ylim([0 2]);
+0413         xlabel(<span class="string">'Y_{D/A} (mol / mol)'</span>);
+0414         ylabel(<span class="string">'Y_{P/A} (mol / mol)'</span>);
+0415 <span class="keyword">end</span>
+0416 
+0417 
+0418 <span class="keyword">if</span> print_fig == 1
+0419     print (gcf,<span class="string">'-dpdf'</span>,<span class="string">'-r300'</span>,fig_title);
+0420 <span class="keyword">end</span>
+0421 
+0422 
+0423 <span class="keyword">end</span>
+0424</pre></div>
+<hr><address>Generated on Tue 19-Jul-2016 12:48:48 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

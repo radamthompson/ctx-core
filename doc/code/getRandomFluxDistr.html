@@ -1,0 +1,226 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of getRandomFluxDistr</title>
+  <meta name="keywords" content="getRandomFluxDistr">
+  <meta name="description" content="getRandomFluxDistr Perform Metabolic Flux Analysis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">code</a> &gt; getRandomFluxDistr.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for code&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>getRandomFluxDistr
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>getRandomFluxDistr Perform Metabolic Flux Analysis</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ model,FluxSS ] = getRandomFluxDistr( model, r_min, r_max, species ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">getRandomFluxDistr Perform Metabolic Flux Analysis
+   This function will take a Metatool model structure and a set of
+   measured flux bounds to find a random flux distribution vector within
+   experimental bounds as part of the creation of experimentally bound
+   ensemble. The ensemble is used in the analysis of representative flux
+   vectors. The algorithm currently uses the Moore-Penrose pseudo-inverse
+   method as described in Poolman et al.
+
+   model := Metatool model structure, requires elementary modes to be in
+   field model.ems
+   r_min := Array of min measured flux values, must be in the same order as
+   model.ext_met and consistent in supplied values as r_max.
+   r_max := Array of max measured flux values, must be in the same order as
+   model.ext_met
+   species := integer to discern the network being analyzed
+           1 := C. thermocellum
+           2 := E. coli
+           3 := Toy network
+
+   FluxSS := Structure with flux distribution calculated, yields, and EMs for specific
+   metabolites
+
+ R. Adam Thompson
+ Trinh Lab
+ University of Tennessee, Knoxville
+ rthomp46@utk.edu
+
+ Created: October 6, 2015 
+ Last edit:</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="getFluxDistrEnsemble.html" class="code" title="function [ ensemble ] = getFluxDistrEnsemble( model, rm_min, rm_max, species, n )">getFluxDistrEnsemble</a>	getFluxDistrEnsemble Make Ensemble of flux distributions</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ model,FluxSS ] = getRandomFluxDistr( model, r_min, r_max, species )</a>
+0002 <span class="comment">%getRandomFluxDistr Perform Metabolic Flux Analysis</span>
+0003 <span class="comment">%   This function will take a Metatool model structure and a set of</span>
+0004 <span class="comment">%   measured flux bounds to find a random flux distribution vector within</span>
+0005 <span class="comment">%   experimental bounds as part of the creation of experimentally bound</span>
+0006 <span class="comment">%   ensemble. The ensemble is used in the analysis of representative flux</span>
+0007 <span class="comment">%   vectors. The algorithm currently uses the Moore-Penrose pseudo-inverse</span>
+0008 <span class="comment">%   method as described in Poolman et al.</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%   model := Metatool model structure, requires elementary modes to be in</span>
+0011 <span class="comment">%   field model.ems</span>
+0012 <span class="comment">%   r_min := Array of min measured flux values, must be in the same order as</span>
+0013 <span class="comment">%   model.ext_met and consistent in supplied values as r_max.</span>
+0014 <span class="comment">%   r_max := Array of max measured flux values, must be in the same order as</span>
+0015 <span class="comment">%   model.ext_met</span>
+0016 <span class="comment">%   species := integer to discern the network being analyzed</span>
+0017 <span class="comment">%           1 := C. thermocellum</span>
+0018 <span class="comment">%           2 := E. coli</span>
+0019 <span class="comment">%           3 := Toy network</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">%   FluxSS := Structure with flux distribution calculated, yields, and EMs for specific</span>
+0022 <span class="comment">%   metabolites</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% R. Adam Thompson</span>
+0025 <span class="comment">% Trinh Lab</span>
+0026 <span class="comment">% University of Tennessee, Knoxville</span>
+0027 <span class="comment">% rthomp46@utk.edu</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% Created: October 6, 2015</span>
+0030 <span class="comment">% Last edit:</span>
+0031 
+0032 react_name = model.react_name;
+0033 model.species = species;
+0034 
+0035 <span class="comment">% Remove empty flux values</span>
+0036 r_bool = ~cellfun(@isempty,r_min);
+0037 r_min = r_min(r_bool);
+0038 r_max = r_max(r_bool);
+0039 
+0040 <span class="comment">% Generate random r_m</span>
+0041 n = length(r_min);
+0042 rand_arr = rand(n,1);
+0043 r_m = cell(n,1);
+0044 
+0045 <span class="keyword">for</span> i = 1:n
+0046     vari = r_max{i} - r_min{i};
+0047     r_m{i} = r_max{i} - (vari * rand_arr(i));
+0048 <span class="keyword">end</span>
+0049 
+0050 <span class="comment">% Get indicies of transport reactions</span>
+0051 i_rm = zeros(length(model.ext_met),1);
+0052 
+0053 <span class="keyword">for</span> i=1:length(model.ext_met)
+0054     idx = find(model.ext(i,:));
+0055     <span class="keyword">if</span> length(idx) &gt; 1
+0056         fprintf(<span class="string">'Caution, multiple reactions use metabolite %s\n'</span>,model.ext_met{i})
+0057         i_rm(i) = idx(1);
+0058     <span class="keyword">else</span>
+0059         i_rm(i) = idx;
+0060     <span class="keyword">end</span>
+0061 <span class="keyword">end</span>
+0062 
+0063 <span class="comment">% Match rxns to measured fluxes</span>
+0064 i_rm_full = i_rm;
+0065 i_rm = i_rm(r_bool);
+0066 ext_met = model.ext_met(r_bool);
+0067 
+0068 <span class="comment">% Set up indicies for specific species/networks</span>
+0069 <span class="keyword">switch</span> species
+0070     <span class="keyword">case</span> 1
+0071         
+0072         iSUB = i_rm_full(find(strcmp(ext_met,<span class="string">'CB_ext'</span>)));
+0073         iETOH = i_rm_full(find(strcmp(ext_met,<span class="string">'ETOH_ext'</span>)));
+0074         iACE = i_rm_full(find(strcmp(ext_met,<span class="string">'ACE_ext'</span>)));
+0075         iLAC = i_rm_full(find(strcmp(ext_met,<span class="string">'LAC_ext'</span>)));
+0076         iFOR = i_rm_full(find(strcmp(ext_met,<span class="string">'FOR_ext'</span>)));
+0077         iBIO = i_rm_full(find(strcmp(ext_met,<span class="string">'BIOMASS'</span>)));
+0078         iCO2 = i_rm_full(find(strcmp(ext_met,<span class="string">'CO2_ext'</span>)));
+0079         iH2 = i_rm_full(find(strcmp(ext_met,<span class="string">'H2_ext'</span>)));
+0080         iNH3 = i_rm_full(find(strcmp(ext_met,<span class="string">'NH3_ext'</span>)));
+0081         iVAL = i_rm_full(find(strcmp(ext_met,<span class="string">'VAL_ext'</span>)));
+0082         iMAIN = i_rm_full(find(strcmp(ext_met,<span class="string">'ATP_maint'</span>)));
+0083         
+0084         FluxSS.i_rm = i_rm;
+0085         cBIO = 37; <span class="comment">% For C. therm. network</span>
+0086         
+0087         ndx = find(model.ems(iSUB,:)~=0);
+0088         ems_new = model.ems(:,ndx);
+0089     <span class="keyword">case</span> 2
+0090         iSUB = i_rm_full(find(strcmp(model.ext_met,<span class="string">'GLC_ext'</span>)));
+0091         iETOH = i_rm_full(find(strcmp(model.ext_met,<span class="string">'ETOH_ext'</span>)));
+0092         iACE = i_rm_full(find(strcmp(model.ext_met,<span class="string">'ACE_ext'</span>)));
+0093         iLAC = i_rm_full(find(strcmp(model.ext_met,<span class="string">'LAC_ext'</span>)));
+0094         iFOR = i_rm_full(find(strcmp(model.ext_met,<span class="string">'FOR_ext'</span>)));
+0095         iBIO = i_rm_full(find(strcmp(model.ext_met,<span class="string">'BIOMASS'</span>)));
+0096         iCO2 = i_rm_full(find(strcmp(model.ext_met,<span class="string">'CO2_ext'</span>)));
+0097         iH2 = i_rm_full(find(strcmp(model.ext_met,<span class="string">'H2_ext'</span>)));
+0098         iNH3 = i_rm_full(find(strcmp(model.ext_met,<span class="string">'NH3_ext'</span>)));
+0099         iSUCC = i_rm_full(find(strcmp(model.ext_met,<span class="string">'SUCC_ext'</span>)));
+0100         iMAIN = i_rm_full(find(strcmp(model.ext_met,<span class="string">'ATP_main'</span>)));
+0101         
+0102         FluxSS.i_rm = i_rm;
+0103         cBIO = 45367; <span class="comment">% For E. coli</span>
+0104         
+0105         ndx = find(model.ems(iSUB,:)~=0);
+0106         ems_new = model.ems(:,ndx);
+0107         
+0108     <span class="keyword">case</span> 3
+0109         <span class="comment">% Toy Network</span>
+0110         iSUB = find(strcmp(react_name,<span class="string">'R1'</span>));
+0111         iP = find(strcmp(react_name,<span class="string">'R4'</span>));
+0112         iB = find(strcmp(react_name,<span class="string">'R8r'</span>));
+0113         iD = find(strcmp(react_name,<span class="string">'R9'</span>));
+0114         
+0115         FluxSS.i_rm = i_rm;
+0116         
+0117         ndx = find(model.ems(iSUB,:)~=0);
+0118         ems_new = model.ems(:,ndx);
+0119 <span class="keyword">end</span>
+0120 
+0121 <span class="comment">% Normalize EMs to substrate uptake rate</span>
+0122 <span class="keyword">for</span> i = 1:size(ems_new,2)
+0123     r = cell2mat(r_m(iSUB));
+0124     ems_new(:,i) = ems_new(:,i)*r/ems_new(iSUB,i);
+0125 <span class="keyword">end</span>
+0126 
+0127 EM_m = ems_new(FluxSS.i_rm,:);
+0128 FluxSS.rm = cell2mat(r_m);
+0129 
+0130 <span class="comment">%Perform flux distribution calculations - CTT</span>
+0131 <span class="keyword">for</span> i = 1:size(EM_m,2)
+0132     w = pinv(EM_m)*FluxSS.rm;
+0133     negative = find(w&lt;0);
+0134     <span class="keyword">if</span> isempty(negative)
+0135         <span class="keyword">break</span>
+0136     <span class="keyword">else</span>
+0137         EM_m(:,negative) = [];
+0138         ems_new(:,negative) = [];
+0139         ndx(negative) = [];
+0140     <span class="keyword">end</span>
+0141 <span class="keyword">end</span>
+0142 
+0143 FluxSS.w = w;
+0144 FluxSS.ndx_ems = ndx;
+0145 FluxSS.r = ems_new*FluxSS.w;
+0146 FluxSS.err = norm(FluxSS.r(FluxSS.i_rm)-FluxSS.rm,2)/norm(FluxSS.rm)*100;
+0147 FluxSS.calc_rm = FluxSS.r(FluxSS.i_rm);
+0148 
+0149 
+0150 
+0151 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Tue 19-Jul-2016 12:48:48 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

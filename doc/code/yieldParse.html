@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of yieldParse</title>
+  <meta name="keywords" content="yieldParse">
+  <meta name="description" content="% yieldParse">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">code</a> &gt; yieldParse.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for code&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>yieldParse
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>% yieldParse</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [output,iEMs,newEMs] = yieldParse(input, EMs) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% yieldParse
+ Adam Thompson
+ 5/14/2014
+ Trinh Lab, University of Tennessee</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% yieldParse</span>
+0002 <span class="comment">% Adam Thompson</span>
+0003 <span class="comment">% 5/14/2014</span>
+0004 <span class="comment">% Trinh Lab, University of Tennessee</span>
+0005 
+0006 <a name="_sub0" href="#_subfunctions" class="code">function [output,iEMs,newEMs] = yieldParse(input, EMs)</a>
+0007 <span class="comment">%%</span>
+0008 <span class="comment">% This script is designed to take in a vector of yields for a product of interest given the metabolic</span>
+0009 <span class="comment">% network. This can be for any product. The format works to use the output</span>
+0010 <span class="comment">% of the Ctherm_flux_calc.m script.</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% output := an n x 1 vector corresponding to v_rep of high yielding EMs</span>
+0013 <span class="comment">% normalized to cellobiose uptake.</span>
+0014 <span class="comment">% iEMs := indices of high-yielding elementary modes</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% input := 1 x q vector of yields for the product of interest where q is the number of elementary modes</span>
+0017 <span class="comment">% in the network</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% EMs := m x q matrix of elementary modes</span>
+0020 <span class="comment">%</span>
+0021 [m q] = size(EMs);
+0022 
+0023 <span class="comment">%%</span>
+0024 <span class="comment">% Find elementary modes which have a yield higher than the threshold of</span>
+0025 <span class="comment">% 0.65*maxYield</span>
+0026 maxProd = max(input);
+0027 thresh = 0.65*maxProd;
+0028 
+0029 <span class="comment">%%</span>
+0030 <span class="comment">% Initialize new EM array</span>
+0031 newEMs = [];
+0032 iEMs = [];
+0033 
+0034 <span class="comment">%%</span>
+0035 <span class="comment">% Fill new EM array with EMs above threshold</span>
+0036 <span class="keyword">for</span> i=1:q
+0037     <span class="keyword">if</span> input(i)&gt;= thresh
+0038         newEMs = [newEMs EMs(:,i)];
+0039         iEMs = [iEMs i];
+0040     <span class="keyword">end</span>
+0041 <span class="keyword">end</span>
+0042 
+0043 <span class="comment">%%</span>
+0044 <span class="comment">% Normalize EMs w.r.t CEL1</span>
+0045 normEM = [];
+0046 
+0047 <span class="keyword">for</span> i=1:size(newEMs,2)
+0048     normEM = newEMs(:,i)/newEMs(1,i);
+0049     newEMs(:,i) = normEM;
+0050 <span class="keyword">end</span>
+0051 
+0052 <span class="comment">%%</span>
+0053 <span class="comment">% Perform SVD to get v_rep of high yield EMs</span>
+0054 [U,S,V] = svd(newEMs,<span class="string">'econ'</span>);
+0055 
+0056 <span class="comment">%%</span>
+0057 <span class="comment">% Check Principal Component is above SVD threshold</span>
+0058 diags = diag(S);
+0059 S2 = diags.^2;
+0060 S2 = S2/sum(S2);
+0061 S2 = cumsum(S2);
+0062 
+0063 <span class="comment">% if S2(1)&lt;0.95</span>
+0064 <span class="comment">%     fprintf('Error: First component of SVD is less than 95% comprehensive.\n')</span>
+0065 <span class="comment">% elseif S2(2)&lt;0.95</span>
+0066 <span class="comment">%     fprintf('Error: First two components of SVD are less than 95% comprehensive.\n')</span>
+0067 <span class="comment">%</span>
+0068 <span class="comment">% elseif S2(3)&lt;0.95</span>
+0069 <span class="comment">%     fprintf('Error: First three components of SVD are less than 95% comprehensive.\n')</span>
+0070 <span class="comment">%     output = U(:,1:3);</span>
+0071 <span class="comment">% end</span>
+0072 
+0073 output = U(:,1);</pre></div>
+<hr><address>Generated on Tue 19-Jul-2016 12:48:48 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

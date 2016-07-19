@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of getFluxDistrEnsemble</title>
+  <meta name="keywords" content="getFluxDistrEnsemble">
+  <meta name="description" content="getFluxDistrEnsemble Make Ensemble of flux distributions">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">code</a> &gt; getFluxDistrEnsemble.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for code&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>getFluxDistrEnsemble
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>getFluxDistrEnsemble Make Ensemble of flux distributions</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ ensemble ] = getFluxDistrEnsemble( model, rm_min, rm_max, species, n ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">getFluxDistrEnsemble Make Ensemble of flux distributions
+   This function will take a Metatool model structure and a set of
+   measured flux bounds to find a random flux distribution vector within
+   experimental bounds as part of the creation of experimentally bound
+   ensemble. The ensemble is used in the analysis of representative flux
+   vectors. The algorithm currently uses the Moore-Penrose pseudo-inverse
+   method as described in Poolman et al.
+
+   model := Metatool model structure, requires elementary modes to be in
+   field model.ems
+   r_min := Array of min measured flux values, must be in the same order as
+   model.ext_met and consistent in supplied values as r_max.
+   r_max := Array of max measured flux values, must be in the same order as
+   model.ext_met
+   species := integer to discern the network being analyzed
+           1 := C. thermocellum
+           2 := E. coli
+           3 := Toy network
+   n := Number of randomly generated flux distributions you wish to
+   calculate
+
+   FluxSS := Structure with flux distribution calculated, yields, and EMs for specific
+   metabolites
+
+ R. Adam Thompson
+ Trinh Lab
+ University of Tennessee, Knoxville
+ rthomp46@utk.edu
+
+ Created: October 6, 2015
+ Last edit:</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="getRandomFluxDistr.html" class="code" title="function [ model,FluxSS ] = getRandomFluxDistr( model, r_min, r_max, species )">getRandomFluxDistr</a>	getRandomFluxDistr Perform Metabolic Flux Analysis</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ ensemble ] = getFluxDistrEnsemble( model, rm_min, rm_max, species, n )</a>
+0002 <span class="comment">%getFluxDistrEnsemble Make Ensemble of flux distributions</span>
+0003 <span class="comment">%   This function will take a Metatool model structure and a set of</span>
+0004 <span class="comment">%   measured flux bounds to find a random flux distribution vector within</span>
+0005 <span class="comment">%   experimental bounds as part of the creation of experimentally bound</span>
+0006 <span class="comment">%   ensemble. The ensemble is used in the analysis of representative flux</span>
+0007 <span class="comment">%   vectors. The algorithm currently uses the Moore-Penrose pseudo-inverse</span>
+0008 <span class="comment">%   method as described in Poolman et al.</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%   model := Metatool model structure, requires elementary modes to be in</span>
+0011 <span class="comment">%   field model.ems</span>
+0012 <span class="comment">%   r_min := Array of min measured flux values, must be in the same order as</span>
+0013 <span class="comment">%   model.ext_met and consistent in supplied values as r_max.</span>
+0014 <span class="comment">%   r_max := Array of max measured flux values, must be in the same order as</span>
+0015 <span class="comment">%   model.ext_met</span>
+0016 <span class="comment">%   species := integer to discern the network being analyzed</span>
+0017 <span class="comment">%           1 := C. thermocellum</span>
+0018 <span class="comment">%           2 := E. coli</span>
+0019 <span class="comment">%           3 := Toy network</span>
+0020 <span class="comment">%   n := Number of randomly generated flux distributions you wish to</span>
+0021 <span class="comment">%   calculate</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">%   FluxSS := Structure with flux distribution calculated, yields, and EMs for specific</span>
+0024 <span class="comment">%   metabolites</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% R. Adam Thompson</span>
+0027 <span class="comment">% Trinh Lab</span>
+0028 <span class="comment">% University of Tennessee, Knoxville</span>
+0029 <span class="comment">% rthomp46@utk.edu</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% Created: October 6, 2015</span>
+0032 <span class="comment">% Last edit:</span>
+0033 
+0034 <span class="comment">% Initialize</span>
+0035 rng(<span class="string">'shuffle'</span>);
+0036 ensemble.flux_mat = zeros(length(model.react_name),n);
+0037 
+0038 <span class="comment">% Find appropriate dimensions</span>
+0039 [model, rand_flux] = <a href="getRandomFluxDistr.html" class="code" title="function [ model,FluxSS ] = getRandomFluxDistr( model, r_min, r_max, species )">getRandomFluxDistr</a>(model, rm_min, rm_max, species );
+0040 ensemble.rm = zeros(length(rand_flux.rm),n);
+0041 ensemble.calc_rm = zeros(length(rand_flux.calc_rm),n);
+0042 
+0043 <span class="comment">% Set initial flux distr</span>
+0044 ensemble.flux_mat(:,1) = rand_flux.r;
+0045 ensemble.rm(:,1) = rand_flux.rm;
+0046 ensemble.calc_rm(:,1) = rand_flux.calc_rm;
+0047 
+0048 <span class="comment">% Continue generating ensemble</span>
+0049 <span class="keyword">for</span> i = 2:1:n
+0050     [model, rand_flux] = <a href="getRandomFluxDistr.html" class="code" title="function [ model,FluxSS ] = getRandomFluxDistr( model, r_min, r_max, species )">getRandomFluxDistr</a>(model, rm_min, rm_max, species );
+0051     ensemble.flux_mat(:,i) = rand_flux.r;
+0052     ensemble.rm(:,i) = rand_flux.rm;
+0053     ensemble.calc_rm(:,i) = rand_flux.calc_rm;
+0054 <span class="keyword">end</span>
+0055 
+0056 
+0057</pre></div>
+<hr><address>Generated on Tue 19-Jul-2016 12:48:48 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

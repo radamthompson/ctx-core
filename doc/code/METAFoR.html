@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of METAFoR</title>
+  <meta name="keywords" content="METAFoR">
+  <meta name="description" content="METAFoR Perform Metabolic Flux Ratio Analysis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">code</a> &gt; METAFoR.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for code&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>METAFoR
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>METAFoR Perform Metabolic Flux Ratio Analysis</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ output ] = METAFoR( em_struc, flux_struc, fig_title ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">METAFoR Perform Metabolic Flux Ratio Analysis
+   This function will take a flux structure (output from getFluxDistr) and
+   perform Metabolic Flux Ratio Analysis on the flux distribution vector.
+   For details on the method, see Sauer et al. J. Bacteriol., 1999,
+   6679-6688.
+
+   This version is for the C. thermocellum network, and so the reactions
+   of interest differ from the Sauer reference.
+
+       em_space := Output structure from runMetatool or performMMF
+       flux_struc := Output structure from getFluxDistr
+       fig_title := String containing the name of the output pdf
+       (optional)
+
+       output := METAFoR statistics structure
+
+
+ R. Adam Thompson
+ Trinh Lab
+ University of Tennessee, Knoxville
+ rthomp46@utk.edu
+
+ Created: March 8, 2015
+ Last edit:</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ output ] = METAFoR( em_struc, flux_struc, fig_title )</a>
+0002 <span class="comment">%METAFoR Perform Metabolic Flux Ratio Analysis</span>
+0003 <span class="comment">%   This function will take a flux structure (output from getFluxDistr) and</span>
+0004 <span class="comment">%   perform Metabolic Flux Ratio Analysis on the flux distribution vector.</span>
+0005 <span class="comment">%   For details on the method, see Sauer et al. J. Bacteriol., 1999,</span>
+0006 <span class="comment">%   6679-6688.</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">%   This version is for the C. thermocellum network, and so the reactions</span>
+0009 <span class="comment">%   of interest differ from the Sauer reference.</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">%       em_space := Output structure from runMetatool or performMMF</span>
+0012 <span class="comment">%       flux_struc := Output structure from getFluxDistr</span>
+0013 <span class="comment">%       fig_title := String containing the name of the output pdf</span>
+0014 <span class="comment">%       (optional)</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">%       output := METAFoR statistics structure</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% R. Adam Thompson</span>
+0020 <span class="comment">% Trinh Lab</span>
+0021 <span class="comment">% University of Tennessee, Knoxville</span>
+0022 <span class="comment">% rthomp46@utk.edu</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% Created: March 8, 2015</span>
+0025 <span class="comment">% Last edit:</span>
+0026 
+0027 
+0028 <span class="comment">% Check for figure printing</span>
+0029 <span class="keyword">if</span> nargin &gt; 1
+0030     print_fig = 1;
+0031 <span class="keyword">else</span>
+0032     print_fig = 0;
+0033 <span class="keyword">end</span>
+0034 
+0035 <span class="comment">% Initialize</span>
+0036 react_name = em_struc.react_name;
+0037 r_orig = flux_struc.r;
+0038 
+0039 tPYR = 4; <span class="comment">% Theoretical max from 1 CB (mol / mol)</span>
+0040 
+0041 
+0042 <span class="comment">% Get indices for reactions of interest</span>
+0043 iCB = find(strcmp(react_name,<span class="string">'CEL1'</span>));
+0044 iOAADC = find(strcmp(react_name,<span class="string">'ANA4'</span>));
+0045 iMAE = find(strcmp(react_name,<span class="string">'ANA3'</span>));
+0046 iPPDK = find(strcmp(react_name,<span class="string">'GG11r'</span>));
+0047 iECH = find(strcmp(react_name,<span class="string">'FEM14'</span>));
+0048 iBIF = find(strcmp(react_name,<span class="string">'OPM8r'</span>));
+0049 iFEH2 = find(strcmp(react_name,<span class="string">'OPM7r'</span>));
+0050 iH2 = find(strcmp(react_name,<span class="string">'TRA8'</span>));
+0051 iPFOR = find(strcmp(react_name,<span class="string">'GG13'</span>));
+0052 iPFL = find(strcmp(react_name,<span class="string">'FEM1'</span>));
+0053 iACE = find(strcmp(react_name,<span class="string">'FEM7'</span>));
+0054 iETH = find(strcmp(react_name,<span class="string">'FEM5'</span>));
+0055 iTCA = find(strcmp(react_name,<span class="string">'TCA1'</span>));
+0056 iLAC = find(strcmp(react_name,<span class="string">'FEM3'</span>));
+0057 iRNF = find(strcmp(react_name,<span class="string">'OPM4r'</span>));
+0058 iNFN = find(strcmp(react_name,<span class="string">'OPM9r'</span>));
+0059     iETH2 = find(strcmp(react_name,<span class="string">'FEM15'</span>)); <span class="comment">% NADPH dependent reaction</span>
+0060 <span class="keyword">if</span> iETH2
+0061     eth2 = 1;
+0062 <span class="keyword">else</span>
+0063     eth2 = 0;
+0064 <span class="keyword">end</span>
+0065 
+0066 <span class="comment">% Normalize r to cellobiose uptake</span>
+0067 r = r_orig./r_orig(iCB);
+0068 <span class="comment">%r = abs(r);</span>
+0069 
+0070 <span class="comment">% Get total fluxes</span>
+0071 rPYR = r(iOAADC) + r(iMAE) + r(iPPDK);
+0072 rH2 = r(iECH) + r(iBIF) - r(iFEH2);
+0073 rFDRD = r(iECH) + r(iRNF) + r(iBIF) + r(iNFN);
+0074 rACoA = r(iPFL) + r(iPFOR);
+0075 <span class="keyword">if</span> eth2 == 1
+0076 rFERM = r(iACE) + r(iETH) + r(iETH2) + r(iTCA);
+0077 <span class="keyword">else</span>
+0078     rFERM = r(iACE) + r(iETH) + r(iTCA);
+0079 <span class="keyword">end</span>
+0080 
+0081 <span class="comment">% Calculate flux ratios</span>
+0082 fMALS = (r(iOAADC) + r(iMAE))/rPYR;
+0083 fPPDK = r(iPPDK) / rPYR;
+0084 
+0085 fECH = r(iECH)/rFDRD;
+0086 fRNF = r(iRNF)/rFDRD;
+0087 fBIF = r(iBIF)/rFDRD;
+0088 fNFN = r(iNFN)/rFDRD;
+0089 
+0090 fECH_2 = r(iECH)/rH2;
+0091 fBIF_2 = r(iBIF)/rH2;
+0092 fFEH2 = r(iFEH2)/rH2;
+0093 
+0094 fPFL = r(iPFL)/rACoA;
+0095 fPFOR = r(iPFOR)/rACoA;
+0096 
+0097 fLAC = r(iLAC)/rPYR;
+0098 
+0099 fTCA = r(iTCA)/rFERM;
+0100 
+0101 fACE = r(iACE)/rFERM;
+0102 <span class="keyword">if</span> eth2 == 1
+0103 fETH = (r(iETH)+r(iETH2))/rFERM;
+0104 <span class="keyword">else</span>
+0105     fETH = r(iETH)/rFERM;
+0106 <span class="keyword">end</span>
+0107 
+0108 <span class="comment">% Make output and printer friendly</span>
+0109 name_vec = {<span class="string">'Mal Shunt'</span>;<span class="string">'PPDK'</span>;<span class="string">'ECH'</span>;<span class="string">'RNF'</span>;<span class="string">'BIF'</span>;<span class="string">'NFN'</span>;<span class="string">'ECH'</span>;<span class="string">'BIF'</span>;<span class="string">'Fe-H2'</span>;<span class="string">'PFL'</span>;<span class="string">'PFOR'</span>;<span class="string">'LDH'</span>;<span class="string">'TCA Cycle'</span>;<span class="string">'PTA-ACK'</span>;<span class="string">'AdhE'</span>};
+0110 f_vec = [fMALS; fPPDK; fECH; fRNF; fBIF; fNFN; fECH_2; fBIF_2; fFEH2; fPFL; fPFOR; fLAC; fTCA; fACE; fETH];
+0111 
+0112 output.name_vec = name_vec;
+0113 output.f_vec = f_vec;
+0114 
+0115 output.r_orig = flux_struc.r;
+0116 
+0117 <span class="keyword">end</span>
+0118</pre></div>
+<hr><address>Generated on Tue 19-Jul-2016 12:48:48 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

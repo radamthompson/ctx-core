@@ -1,0 +1,84 @@
+% Author: R. Adam Thompson & Cong T. Trinh 
+% Description: C. thermocellum
+
+-ENZREV
+
+CEL3r GG2r GG5r GG6r GG7r GG8r GG9r GG10r PPP4r PPP5r PPP6r PPP7r PPP8r 
+TCA2r TCA3r TCA9r OPM4r OPM7r VAL2r VAL3r VAL4r TAM1r GG11r OPM9r OPM8r GG12r MAINT3 MAINT2 MAINT4
+
+-ENZIRREV
+
+CEL1 CEL2 GG1 GG3 GG13 TCA1 TCA4 ANA1 ANA3 ANA4 FEM1 FEM3 FEM5 
+FEM6 FEM7 FEM8 BIO MAINT TRA1 TRA2 TRA4 TRA6 TRA7 TRA8 TRA9 FEM14 VAL1 VAL5 GLYC1 GLYC2  
+
+-METINT
+GLC G1P G6P F6P ATP ADP F16BP GA3P DHAP 3PGP 3PG 2PG PEP PYR NADH NAD 
+R5P NADPH NADP X5P RIBO5P S7P ERY4P ACoA CACO CO2 CIT ICIT AKG 
+MAL OAA FOR ACE LAC ETOH ACA ACP fdred fdox H2 NH3 ACELAC DHMB AKIV GLUE VAL PPi GTP GDP ADPGLC AMP CB CoASH
+
+-METEXT
+
+CB_ext ETOH_ext ACE_ext LAC_ext FOR_ext BIOMASS CO2_ext 
+H2_ext NH3_ext VAL_ext ATP_maint
+
+-CAT
+
+CEL1       :	CB_ext + ATP = CB + ADP .
+CEL2	:	CB = GLC + G1P .
+CEL3r	   :    G1P = G6P .
+GG1	   :	GLC + GTP = G6P + GDP .
+GG2r       : 	G6P = F6P .
+GG3        :	F6P + PPi = F16BP .
+GG5r       : 	F16BP = DHAP + GA3P .
+GG6r       :	GA3P = DHAP .
+GG7r       :	GA3P + NAD = 3PGP +  NADH  .
+GG8r       :	3PGP + ADP = 3PG + ATP .
+GG9r       : 	3PG = 2PG .
+GG10r      : 	2PG = PEP .
+GG11r	:	 PEP + AMP + PPi = PYR + ATP .
+GG12r	:	3PGP + GDP = 3PG + GTP .
+PPP4r      :	R5P = X5P .
+PPP5r      :	R5P = RIBO5P .
+PPP6r      : 	RIBO5P + X5P = S7P + GA3P . 
+PPP7r      : 	S7P = ERY4P + DHAP . 
+PPP8r      : 	ERY4P + X5P = GA3P + F6P . 
+TCA1       :	OAA + ACoA = CIT + CoASH . 
+TCA2r      :	CIT = CACO .
+TCA3r      :	CACO = ICIT .
+TCA4       :	ICIT + NADP = AKG + CO2 + NADPH .
+TCA9r      : 	MAL + NAD = OAA + NADH  .
+ANA1       :    PEP + GDP + CO2 = OAA + GTP . 
+ANA3       : 	MAL + NADP = PYR + CO2 + NADPH  .
+ANA4 	   :    OAA = PYR + CO2 .
+FEM1       : 	PYR + CoASH = ACoA + FOR .
+FEM3       : 	PYR + NADH = LAC + NAD . 
+FEM5       : 	ACoA + NADH = ACA + NAD + CoASH. 
+FEM6       : 	ACA + NADH = ETOH + NAD .
+FEM7       : 	ACoA = ACP + CoASH . 
+FEM8       : 	ACP + ADP = ACE + ATP .
+BIO	: 0.25818 G6P + 0.3275 F6P + 0.74001 RIBO5P + 0.7259 AKG + 2.0819 OAA + 0.3782 ERY4P + 0.55655 GA3P + 0.68952 3PG + 0.82244 PEP + 2.19628 PYR + 1.90206 ACoA + 1.8438 NAD + 14.1705 NADPH + 42.6517 ATP + 8.42502 NH3 = BIOMASS + 1.8438 NADH + 14.1705 NADP + 42.6517 ADP + 1.90206 CoASH .
+MAINT      : 	ATP = ADP + ATP_maint .
+TRA1       : 	ETOH = ETOH_ext . 
+TRA2       : 	ACE = ACE_ext .
+TRA4       :	LAC = LAC_ext .
+TRA6       :	FOR = FOR_ext  .
+TRA7       : 	CO2 = CO2_ext .
+TRA8       :    H2 = H2_ext .
+TRA9       :    NH3_ext = NH3 .
+VAL5    :   VAL = VAL_ext .
+VAL1    :   2 PYR = ACELAC + CO2 .
+VAL2r   :   ACELAC + NADPH = DHMB + NADP .
+VAL3r   :   DHMB = AKIV .
+VAL4r   :   AKIV + GLUE = VAL + AKG .
+TAM1r   :   AKG + NH3 + NADPH = GLUE + NADP .
+FEM14 	   :    fdred = H2 + fdox .
+GG13       : 	PYR + fdox + CoASH = ACoA + CO2 + fdred  . 
+OPM4r      :	NAD + fdred = NADH + fdox .
+OPM7r	   : 	NADP + H2 = NADPH .
+OPM8r       :    fdred + NADH = fdox + NAD + 2 H2 .
+OPM9r	:	fdred + 2 NADP + NADH = fdox + NAD + 2 NADPH .
+GLYC1	:	G1P + ATP = ADPGLC + PPi .
+GLYC2	:	ADPGLC = AMP + G1P .
+MAINT2	:	ATP + GDP = ADP + GTP .
+MAINT3	:	ATP = ADP + PPi .
+MAINT4	:	AMP + ATP = 2 ADP .
